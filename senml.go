@@ -47,7 +47,7 @@ type SenMLRecord struct {
 	UpdateTime float64 `json:"ut,omitempty"  xml:"ut,attr,omitempty"`
 
 	Value       *float64 `json:"v,omitempty"  xml:"v,attr,omitempty"`
-	StringValue string   `json:"vs,omitempty"  xml:"vs,attr,omitempty"`
+	StringValue *string   `json:"vs,omitempty"  xml:"vs,attr,omitempty"`
 	DataValue   string   `json:"vd,omitempty"  xml:"vd,attr,omitempty"`
 	BoolValue   *bool    `json:"vb,omitempty"  xml:"vb,attr,omitempty"`
 
@@ -278,7 +278,7 @@ func Normalize(senml SenML) SenML {
 
 	var totalRecords int = 0
 	for _, r := range senml.Records {
-		if (r.Value != nil) || (len(r.StringValue) > 0) || (len(r.DataValue) > 0) || (r.BoolValue != nil) {
+		if (r.Value != nil) || (r.StringValue != nil) || (len(r.DataValue) > 0) || (r.BoolValue != nil) {
 			totalRecords += 1
 		}
 	}
@@ -318,7 +318,7 @@ func Normalize(senml SenML) SenML {
 			r.Time = float64(t) + r.Time
 		}
 
-		if (r.Value != nil) || (len(r.StringValue) > 0) || (len(r.DataValue) > 0) || (r.BoolValue != nil) {
+		if (r.Value != nil) || (len(r.StringValue) > 0) || (r.BoolValue != nil) {
 			ret.Records[numRecords] = r
 			numRecords += 1
 		}
@@ -383,7 +383,7 @@ func IsValid(senml SenML) bool {
 		if len(r.DataValue) > 0 {
 			valueCount = valueCount + 1
 		}
-		if len(r.StringValue) > 0 {
+		if (r.StringValue != nil) {
 			valueCount = valueCount + 1
 		}
 		if valueCount > 1 {
