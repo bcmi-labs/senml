@@ -28,6 +28,7 @@ const (
 
 type OutputOptions struct {
 	PrettyPrint bool
+	CborLabel 	bool
 	Topic       string
 }
 
@@ -255,7 +256,31 @@ func Encode(s SenML, format Format, options OutputOptions) ([]byte, error) {
 		// output a CBOR version
 		var cborHandle codec.Handle = new(codec.CborHandle)
 		var encoder *codec.Encoder = codec.NewEncoderBytes(&data, cborHandle)
-		err = encoder.Encode(s.Records)
+		var err error
+		if options.CborLabel {
+			var recordsCborLabel []SenMLRecordCborLabel
+			for  _, r := range s.Records {
+				recordsCborLabel = append(recordsCborLabel, SenMLRecordCborLabel{
+					BaseName: r.BaseName,
+					BaseTime: r.BaseTime,
+					BaseUnit: r.BaseUnit,
+					BaseVersion: r.BaseVersion,
+					Name: r.Name,
+					Unit: r.Unit,
+					Time: r.Time,
+					UpdateTime: r.UpdateTime,
+					Value: r.Value,
+					StringValue: r.StringValue,
+					DataValue: r.DataValue,
+					BoolValue: r.BoolValue,
+					Sum: r.Sum,
+				})
+			}
+			err = encoder.Encode(recordsCborLabel)
+		} else {
+			err = encoder.Encode(s.Records)
+		}
+
 		if err != nil {
 			//fmt.Println("error encoding CBOR SenML", err)
 			return nil, err
