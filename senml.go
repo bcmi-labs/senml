@@ -54,6 +54,27 @@ type SenMLRecord struct {
 	Sum *float64 `json:"s,omitempty"  xml:"s,attr,omitempty"`
 }
 
+type SenMLRecordCborLabel struct {
+	_struct bool    `codec:",int,omitempty"`
+
+	BaseName    string  `codec:"-2"`
+	BaseTime    float64 `codec:"-3"`
+	BaseUnit    string  `codec:"-4"`
+	BaseVersion int     `codec:"-1"`
+
+	Name       string  `codec:"0"`
+	Unit       string  `codec:"1"`
+	Time       float64 `codec:"6"`
+	UpdateTime float64 `codec:"7"`
+
+	Value       *float64 `codec:"2"`
+	StringValue *string   `codec:"3"`
+	DataValue   string   `codec:"8"`
+	BoolValue   *bool    `codec:"4"`
+
+	Sum *float64 `codec:"5,int"`
+}
+
 type SenML struct {
 	XMLName *bool  `json:"_,omitempty" xml:"sensml"`
 	Xmlns   string `json:"_,omitempty" xml:"xmlns,attr"`
@@ -109,7 +130,29 @@ func Decode(msg []byte, format Format) (SenML, error) {
 		var decoder *codec.Decoder = codec.NewDecoderBytes(msg, cborHandle)
 		err = decoder.Decode(&s.Records)
 		if err != nil {
-			//fmt.Println("error parsing CBOR SenML", err)
+			var recordsCborLabel []SenMLRecordCborLabel
+			decoder = codec.NewDecoderBytes(msg, cborHandle)
+			err = decoder.Decode(&recordsCborLabel)
+			if err != nil {
+				return s, err
+			}
+			for  _, r := range recordsCborLabel {
+				s.Records = append(s.Records, SenMLRecord{
+					BaseName: r.BaseName,
+					BaseTime: r.BaseTime,
+					BaseUnit: r.BaseUnit,
+					BaseVersion: r.BaseVersion,
+					Name: r.Name,
+					Unit: r.Unit,
+					Time: r.Time,
+					UpdateTime: r.UpdateTime,
+					Value: r.Value,
+					StringValue: r.StringValue,
+					DataValue: r.DataValue,
+					BoolValue: r.BoolValue,
+					Sum: r.Sum,
+				})
+			}
 			return s, err
 		}
 
@@ -318,7 +361,7 @@ func Normalize(senml SenML) SenML {
 			r.Time = float64(t) + r.Time
 		}
 
-		if (r.Value != nil) || (len(r.StringValue) > 0) || (r.BoolValue != nil) {
+		if (r.Value != nil) || (r.StringValue != nil) || (len(r.DataValue) > 0) || (r.BoolValue != nil) {
 			ret.Records[numRecords] = r
 			numRecords += 1
 		}
