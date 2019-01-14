@@ -130,15 +130,17 @@ func Decode(msg []byte, format Format) (SenML, error) {
 		var cborHandle codec.Handle = new(codec.CborHandle)
 		var decoder *codec.Decoder = codec.NewDecoderBytes(msg, cborHandle)
 		err = decoder.Decode(&s.Records)
-		if err != nil || !IsValid(s) {
+		v := !IsValid(s)
+		if err != nil || v {
 			var recordsCborLabel []SenMLRecordCborLabel
 			decoder = codec.NewDecoderBytes(msg, cborHandle)
 			err = decoder.Decode(&recordsCborLabel)
 			if err != nil {
 				return s, err
 			}
+			records := []SenMLRecord{}
 			for  _, r := range recordsCborLabel {
-				s.Records = append(s.Records, SenMLRecord{
+				records = append(records, SenMLRecord{
 					BaseName: r.BaseName,
 					BaseTime: r.BaseTime,
 					BaseUnit: r.BaseUnit,
@@ -154,7 +156,7 @@ func Decode(msg []byte, format Format) (SenML, error) {
 					Sum: r.Sum,
 				})
 			}
-			return s, err
+			s.Records = records
 		}
 
 	case format == MPACK:
