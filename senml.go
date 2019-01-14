@@ -128,7 +128,7 @@ func Decode(msg []byte, format Format) (SenML, error) {
 	case format == CBOR:
 		// parse the input CBOR
 		var cborHandle codec.Handle = new(codec.CborHandle)
-		var decoder *codec.Decoder = codec.NewDecoderBytes(msg, cborHandle)
+		var decoder = codec.NewDecoderBytes(msg, cborHandle)
 		err = decoder.Decode(&s.Records)
 		v := !IsValid(s)
 		if err != nil || v {
@@ -138,7 +138,7 @@ func Decode(msg []byte, format Format) (SenML, error) {
 			if err != nil {
 				return s, err
 			}
-			records := []SenMLRecord{}
+			var records []SenMLRecord
 			for  _, r := range recordsCborLabel {
 				records = append(records, SenMLRecord{
 					BaseName: r.BaseName,
