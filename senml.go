@@ -130,7 +130,7 @@ func Decode(msg []byte, format Format) (SenML, error) {
 		var cborHandle codec.Handle = new(codec.CborHandle)
 		var decoder *codec.Decoder = codec.NewDecoderBytes(msg, cborHandle)
 		err = decoder.Decode(&s.Records)
-		if err != nil {
+		if err != nil || !IsValid(s) {
 			var recordsCborLabel []SenMLRecordCborLabel
 			decoder = codec.NewDecoderBytes(msg, cborHandle)
 			err = decoder.Decode(&recordsCborLabel)
